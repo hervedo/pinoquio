@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id           String         @id @default(uuid())
+  nome         String
+  email        String         @unique
+  senha        String
+  acesso       Boolean
+  nivel        String
+  criado_em    DateTime       @default(now())
+  alterado_em  DateTime       @default(now())
+  Resposta     Resposta[]
+  Questionario Questionario[]
+
+  @@map("usuarios")
+}
+
+model Questionario {
+  id        String   @id @default(uuid())
+  nome      String
+  perguntas Json
+  criado_em DateTime @default(now())
+
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId String
+
+  @@map("questionarios")
+}
+
+model Resposta {
+  id             String   @id @default(uuid())
+  latitude       Decimal
+  longitude      Decimal
+  respostas      Json
+  questionarioId String
+  criado_em      DateTime @default(now())
+
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId String
+
+  //identificar quem fez a pesquisa //
+  @@map("respostas")
+}

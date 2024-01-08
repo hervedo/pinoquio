@@ -1,0 +1,131 @@
+### RFs (Requisitos Funcionais)
+
+[x] Deve ser possível cadastrar usuário
+[] Deve ser possível se autenticar
+[] Deve ser possível obter o perfil logado
+[] Deve ser possível alterar a senha
+[] Deve ser possível alterar dados do usuário
+[] Deve ser possível bloquear usuário
+
+
+[] Deve ser possível cadastrar questionário
+[] Deve ser possível cadastrar várias perguntas ao questionário
+[] Deve ser possível registrar as respostas
+[] Deve ser possível obter o número de respostas registradas pelo usuário
+[] Deve ser possível obter as respostas por região
+
+
+### RNs (Regras de Negócio)
+[] Não deve permitir se cadastrar com um e-mail duplicado
+[] Não deve permitir usuário se logar 2x ao mesmo tempo, exceto admin.
+[] Não deve permitir registrar respostas a mais de 50m do anterior.
+
+
+
+
+## RNFs (Requisitos Não Funcionais)
+[] A senha do usuário precisa estar criptografado
+[] Os dados da aplicação precisam estar persistidos em PostgresSQL
+[] O usuário deve ser identificado por JWT (JSON Web Token)
+
+
+
+
+### TABELAS
+
+    USUARIOS
+            id : String
+            name : String
+            email : String (Unique)
+            verified  : String
+            password  : String
+           
+            acesso : Boolean
+            
+            created_at : timestamp
+            Updated_at : Timestamp
+
+            api_token : String NOT NULL UNIQUE
+            token_access : String
+
+    respostas
+            id: String (incremental)
+            latitude: String
+            longitude: String
+            respostas: json
+            questionario_id: String
+            token_id: String
+            created_at : timestamp
+
+    questionario
+            id: String (incremental)
+            Nome: String            
+            perguntas: json            
+            token_id: String
+            created_at : timestamp
+
+
+
+
+password_resets
+            email : String
+            token : String
+            created_at : timestamp
+            Updated_at : Timestamp
+
+    accesses
+            id: String (incremental)
+            user_id: String            
+            created_at: timestamp
+            acao: string
+        
+    tokens
+            id: String (incremental)
+            api_token: String 
+            level: integer
+            user_id: string
+            created_at : timestamp
+  
+
+    errors
+            id: String (incremental)
+            created_at : timestamp
+            error : String
+            
+
+### Rotas API
+
+
+    post('token/create')
+
+// Rotas para o APP - Usuários level 1
+
+    post('usuario')  //Cria Usuario
+    get('usuarios')  //Lista todos os usuarios
+    post('questionario') //Cria Questionario
+
+
+Falta
+    post('respostas') //criar respostas
+
+
+
+    post('questionario/getAll')
+    post('respostas/create')
+    
+
+// Rotas para o Sistema - Usuários level 2
+ 
+    post('questionario/create');
+    post('questionario/showAll');  
+    post('questionario/{id}/show');      
+    post('respostas');
+    post('respostas/showAll');
+    post('respostas/unitFilter');
+    post('questionario/monthFilter');
+    
+
+
+
+
+
