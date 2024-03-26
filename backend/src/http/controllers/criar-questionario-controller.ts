@@ -1,5 +1,6 @@
 import { PrismaQuestionariosRepository } from '@/repositories/prisma/prisma-questionarios-repository'
 import { CriarQuestionarioUseCase } from '@/useCases/criar-questionario-usecase'
+import { Prisma } from '@prisma/client'
 import { FastifyReply, FastifyRequest } from 'fastify'
 // import { z } from 'zod'
 
@@ -20,7 +21,13 @@ export async function CriarQuestionarioController(
   //   usuarioId: z.string().uuid(),
   // })
 
+  console.log('Entrou Controller Questionario')
+
   const { nome, perguntas, usuarioId } = request.body
+
+  console.log(nome)
+  console.log(usuarioId)
+  console.log(perguntas)
 
   try {
     const prismaQuestionariosRepository = new PrismaQuestionariosRepository()
@@ -28,9 +35,11 @@ export async function CriarQuestionarioController(
       prismaQuestionariosRepository,
     )
 
+    const perguntasJSON = perguntas as Prisma.JsonArray
+
     const questionario = criarQuestionarioUseCase.execute({
       nome,
-      perguntas,
+      perguntas: perguntasJSON,
       usuarioId,
     })
 

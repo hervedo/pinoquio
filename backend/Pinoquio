@@ -128,4 +128,25 @@ Falta
 
 
 
+{
+   "Peguntas": [
+      {
+         "pergunta": "Qual o sexo",
+         "respostas": ['Masculino','Feminino']
+      },
+      {
+         "pergunta": "Vota em Videira",
+         "respostas": ['Sim', 'Não']
+      },
+      {
+         "pergunta": "Perfil Idade",
+         "respostas": ['16-18', '18-25', '25-55', '55-70', '70-199']
+      },
+      {
+         "pergunta": "Qual deveria ser o foco do próximo prefeito",
+         "respostas": ['Empregos', 'Social', 'Saúde', 'Educação', 'Trânsito', 'Estradas']
+      },
 
+ 
+   ]
+}

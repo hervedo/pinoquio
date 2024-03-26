@@ -1,0 +1,149 @@
+@baseUrl = http://localhost:3333
+
+
+# @name Create User
+POST {{baseUrl}}/usuario
+Content-Type: application/json
+
+{
+    "nome": "Teste 1",
+    "email": "teste@teste.com",
+    "senha": "123456",
+    "nivel": "ADMIN",
+    "acesso": true
+}
+
+###
+
+# @name FETCH User
+GET {{baseUrl}}/usuarios
+
+
+###
+
+# @name Create Questions
+POST {{baseUrl}}/questionario
+Content-Type: application/json
+
+
+{
+   "nome": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+   "usuarioId": "3ee8d1bc-24ed-42bf-bf87-46d32a6681c4",
+   "perguntas": [
+      {
+         "pergunta": "upper",
+         "resposta": [
+            "Oxygen",
+            "Nitrogen",
+            "Carbon",
+            "Carbon"
+         ]
+      },
+      {
+         "pergunta": "middle",
+         "resposta": [
+            "Nitrogen",
+            "Oxygen",
+            "Oxygen",
+            "Carbon"
+         ]
+      },
+      {
+         "pergunta": "upper",
+         "resposta": [
+            "Nitrogen",
+            "Nitrogen",
+            "Nitrogen",
+            "Nitrogen"
+         ]
+      },
+      {
+         "pergunta": "upper",
+         "resposta": [
+            "Nitrogen",
+            "Carbon",
+            "Nitrogen",
+            "Oxygen"
+         ]
+      },
+      {
+         "pergunta": "lower",
+         "resposta": [
+            "Carbon",
+            "Oxygen",
+            "Oxygen",
+            "Oxygen"
+         ]
+      }
+   ]
+}
+
+
+
+###
+//,
+//    "token_id": "53cae3d0-76b8-415b-a3a1-bdbf66c97ecd"    
+
+###
+
+# @name Buscar Questionarios
+GET {{baseUrl}}/questionarios
+Content-Type: application/json
+
+{}
+
+
+###
+
+# @name Buscar questionário
+GET {{baseUrl}}/questionario/aa0da9fc-ff4b-4cf4-a1da-41bce4f9eed9
+Content-Type: application/json
+
+{}
+
+
+
+###
+
+# @name Create Respostas
+POST {{baseUrl}}/resposta
+Content-Type: application/json
+
+
+{
+   "questionarioId": "aa0da9fc-ff4b-4cf4-a1da-41bce4f9eed9",
+   "usuarioId": "3ee8d1bc-24ed-42bf-bf87-46d32a6681c4",
+   "latitude": -27.0529415,
+   "longitude": -51.521832,
+   "respostas": [
+      {
+         "pergunta": "upper",
+         "resposta": "Carbon" 
+         
+      },
+      {
+         "pergunta": "middle",
+         "resposta": "Oxygen"         
+      },
+      {
+         "pergunta": "upper",
+         "resposta": "Carbon"
+      },
+      {
+         "pergunta": "upper",
+         "resposta": "Carbon"         
+      },
+      {
+         "pergunta": "lower",
+         "resposta": "Nitrogen"
+      }
+   ]
+}
+
+
+###
+# @name Buscar respostas
+GET {{baseUrl}}/respostas
+Content-Type: application/json
+
+{}

@@ -20,5 +20,7 @@ export async function ListarQuestionarioController(
 
   const questionario = await listarQuestionarioUseCase.execute({ id })
 
+  console.log(questionario)
+
   return response.status(200).send(questionario)
 }

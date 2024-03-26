@@ -5,6 +5,8 @@ import { env } from './env'
 
 export const app = fastify()
 
+console.log('Entrou App')
+
 app.register(appRoutes)
 
 app.setErrorHandler((error, _, response) => {

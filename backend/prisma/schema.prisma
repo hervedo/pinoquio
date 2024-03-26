@@ -28,7 +28,7 @@ model Usuario {
 model Questionario {
   id        String   @id @default(uuid())
   nome      String
-  perguntas Json
+  perguntas Json?
   criado_em DateTime @default(now())
 
   usuario   Usuario @relation(fields: [usuarioId], references: [id])
@@ -41,7 +41,7 @@ model Resposta {
   id             String   @id @default(uuid())
   latitude       Decimal
   longitude      Decimal
-  respostas      Json
+  respostas      Json?
   questionarioId String
   criado_em      DateTime @default(now())
 
