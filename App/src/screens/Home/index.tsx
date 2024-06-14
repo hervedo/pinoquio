@@ -1,7 +1,11 @@
 import { FlatList } from "react-native";
-import { Container, Text } from "./styles";
+import { Container, Message, Text } from "./styles";
 import { useEffect, useState } from "react";
 import { Resposta } from "../../components/Resposta";
+import { LocationAccuracy, useForegroundPermissions, watchPositionAsync, LocationSubscription } from "expo-location"
+import { getAddressLocation } from "../../utils/getAddressLocation";
+
+
 
 
 export type IRespostas = {
@@ -16,9 +20,19 @@ export type IPerguntas = {
     respostas: IRespostas[]
 }
 
+type ICoordenadas = {
+    altitude: number | null
+    latitude: number | null
+    longitude: number | null
+}
+
 export function Home() {
 
     const [questionarios, setQuestionarios] = useState<IPerguntas[]>([])
+    const [coordenada, setCoordenada] = useState<ICoordenadas>()
+
+
+    const [locationForegroundPermission, requestLocationForegroundPermission] = useForegroundPermissions()
 
     function atualiza() {
         setQuestionarios(
@@ -35,11 +49,55 @@ export function Home() {
     function handleResposta(idPergunta: string, pergunta: string, idResposta: string, resposta: string) {
         console.log(idPergunta + " - " + pergunta)
         console.log(idResposta + " -" + resposta)
+
+
+
+
+
     }
 
     useEffect(() => {
         atualiza();
     }, []);
+
+    useEffect(() => {
+        requestLocationForegroundPermission();
+    }, [])
+
+    useEffect(() => {
+
+        if (!locationForegroundPermission?.granted) {
+            return
+        }
+
+        let subscription: LocationSubscription
+
+        watchPositionAsync({
+            accuracy: LocationAccuracy.High,
+            timeInterval: 1000
+        }, (location) => {
+            getAddressLocation(location.coords)
+                .then((address) => {
+                    console.log("latitude:" + location.coords.latitude + "longitude:" + location.coords.longitude)
+                    console.log(address)
+                })
+            setCoordenada({ altitude: location.coords.altitude, latitude: location.coords.latitude, longitude: location.coords.longitude })
+        }).then((response) => subscription = response)
+
+        return () => subscription.remove()
+
+    }, [locationForegroundPermission])
+
+    if (!locationForegroundPermission?.granted) {
+        return (
+            <Container>
+                <Message>
+                    Permissão da localização negada.
+                    Favor conceder a permissão para localização nas configurações do seu dispositivo
+                </Message>
+            </Container>
+        )
+    }
 
     return (
         <Container>
@@ -56,9 +114,7 @@ export function Home() {
                             )
                             }
                             horizontal
-
                         />
-
 
                     </>
                 )
