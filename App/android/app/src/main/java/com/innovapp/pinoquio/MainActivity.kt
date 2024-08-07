@@ -1,4 +1,4 @@
-package com.pinoquio.br
+package com.innovapp.pinoquio
 
 import android.os.Build
 import android.os.Bundle

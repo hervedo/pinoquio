@@ -33,8 +33,8 @@ export class Respostas extends Realm.Object<Respostas> {
         properties: {
             _id: 'uuid',
             respostas: 'string',
-            latitude: 'number',
-            longitude: 'number',
+            latitude: 'float',
+            longitude: 'float',
             created_at: 'date',
             updated_at: 'date'
         }

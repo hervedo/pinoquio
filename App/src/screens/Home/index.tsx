@@ -1,158 +1,122 @@
-import { Alert, FlatList } from "react-native";
-import { Container, Message, Text } from "./styles";
 import { useEffect, useState } from "react";
-import { Resposta } from "../../components/Resposta";
-import { LocationAccuracy, useForegroundPermissions, watchPositionAsync, LocationSubscription } from "expo-location"
-import { getAddressLocation } from "../../utils/getAddressLocation";
+import { useUser } from "@realm/react";
+//import { requestBackgroundPermissionsAsync } from "expo-location"
+import { CloudArrowUp } from "phosphor-react-native";
 import { Button } from "../../components/Button";
-import { useQuery, useRealm } from "../../libs/realm";
-import { Respostas } from "../../libs/realm/schemas/Respostas";
-import { Questionario } from "../../libs/realm/schemas/Questionario";
+import { saveLastAsyncTimestamp } from "../../libs/asyncStorage/asyncStorage";
 
+import { TopMessage } from "../../components/TopMessage";
+//import { startLocationTask } from "../../tasks/backgroudLocationTask";
+import { useRealm } from "../../libs/realm";
+import { Container, Text, Message, Mostrar, Rodape } from "./styles";
+import { useNavigation } from "@react-navigation/native";
+import { Realm } from "realm"
+import { Encerrar } from "../../components/Encerrar";
 
-export type IRespostas = {
-    idResposta: string
-    resposta: string
-}
-
-export type IPerguntas = {
-    idPergunta: string
-    pergunta: string
-    respostas: IRespostas[]
-}
-
-type ICoordenadas = {
-    altitude: number | null
-    latitude: number
-    longitude: number
-}
 
 export function Home() {
 
-    const [questionarios, setQuestionarios] = useState<IPerguntas[]>([])
-    const [coordenada, setCoordenada] = useState<ICoordenadas>({ altitude: 0, longitude: 0, latitude: 0 })
     const [registrando, setRegistrando] = useState(false)
+    const [percentageToSync, setPercentageToSync] = useState<string>('')
 
+    const {navigate} = useNavigation()
 
     const realm = useRealm()
-
-    const [locationForegroundPermission, requestLocationForegroundPermission] = useForegroundPermissions()
-
+    const user = useUser()
 
 
-    function atualiza() {
-        const recupera = useQuery(Questionario).filtered("ativa = 'S'")
+    
+    //const backgroundPermissionas = await requestBackgroundPermissionsAsync()
 
-        console.log(recupera)
+    //setRegistrando(true)
 
+    //if(!backgroundPermissionas.granted){
+    //    setRegistrando(false)
+    //    return Alert.alert("Localização","Não obtive os dados de localização, habilite nas Permissões (Permitir o tempo todo)")
+    //}
 
-        setQuestionarios(
-            [{ idPergunta: "P000001", pergunta: "Qual sua idade?", respostas: [{ idResposta: "R00001", resposta: "15-20" }, { idResposta: "R00002", resposta: "21-25" }] },
-            { idPergunta: "P000002", pergunta: "Qual sua formação?", respostas: [{ idResposta: "R00003", resposta: "Superior incompleto" }, { idResposta: "R00004", resposta: "Superior Completo" }] },
-            { idPergunta: "P000003", pergunta: "Em quem você votaria para Prefeito?", respostas: [{ idResposta: "R00005", resposta: "Sandro" }, { idResposta: "R00006", resposta: "Jorginho" }, { idResposta: "R00007", resposta: "Vilço Medeiros" }, { idResposta: "R00008", resposta: "Carelli" }, { idResposta: "R00009", resposta: "Rosinha" }] },
-            { idPergunta: "P000004", pergunta: "Em quem você NÃO votaria para Prefeito?", respostas: [{ idResposta: "R00010", resposta: "Sandro" }, { idResposta: "R00011", resposta: "Jorginho" }, { idResposta: "R00012", resposta: "Vilço Medeiros" }, { idResposta: "R00013", resposta: "Carelli" }, { idResposta: "R00014", resposta: "Rosinha" }] },
-            { idPergunta: "P000005", pergunta: "Qual deveria ser a prioridade do próximo prefeito?", respostas: [{ idResposta: "R00015", resposta: "Trânsito" }, { idResposta: "R00016", resposta: "Educação" }, { idResposta: "R00017", resposta: "Saúde" }, { idResposta: "R00018", resposta: "Cultura" }, { idResposta: "R00019", resposta: "Auxilio a Empresas" }] }
-            ]
-        )
-    }
+    async function ProgressNotification(transferred: number, transferable: number) {
+        const percProgress = (transferred/transferable)*100
 
-    function handleResposta(idPergunta: string, pergunta: string, idResposta: string, resposta: string) {
-        console.log(idPergunta + " - " + pergunta)
-        console.log(idResposta + " -" + resposta)
-    }
+        if(percProgress === 100){
+            await saveLastAsyncTimestamp()
+            setPercentageToSync('')
 
-    function handleSalvar() {
-        try {
-            setRegistrando(true)
-            const respostas = ''
-
-
-            realm.write(() => {
-                realm.create('Respostas', Respostas.generate({
-                    respostas,
-                    latitude: coordenada.latitude,
-                    longitude: coordenada.longitude
-                }))
-            })
-
-
-        } catch (error) {
-            Alert.alert('Erro', 'Não foi possível registrar a resposta')
-            setRegistrando(false)
-
+        }else{
+            setPercentageToSync(`${percProgress.toFixed(0)} % sincronizado.`)
         }
-
-        Alert.alert('Resposta', 'Resposta registrada com sucesso!')
-
     }
 
-
-    useEffect(() => {
-        atualiza();
-    }, []);
-
-    useEffect(() => {
-        requestLocationForegroundPermission();
-    }, [])
-
-    useEffect(() => {
-
-        if (!locationForegroundPermission?.granted) {
-            return
-        }
-
-        let subscription: LocationSubscription
-
-        watchPositionAsync({
-            accuracy: LocationAccuracy.High,
-            timeInterval: 1000
-        }, (location) => {
-            getAddressLocation(location.coords)
-                .then((address) => {
-                    console.log("Altitude:" + location.coords.altitude + "latitude:" + location.coords.latitude + "longitude:" + location.coords.longitude)
-                    console.log(address)
-                })
-            setCoordenada({ altitude: location.coords.altitude, latitude: location.coords.latitude, longitude: location.coords.longitude })
-        }).then((response) => subscription = response)
-
-        return () => subscription.remove()
-
-    }, [locationForegroundPermission])
-
-    if (!locationForegroundPermission?.granted) {
-        return (
-            <Container>
-                <Message>
-                    Permissão da localização negada.
-                    Favor conceder a permissão para localização nas configurações do seu dispositivo
-                </Message>
-            </Container>
-        )
+    function handlePesquisa(){
+        navigate('pesquisa')
     }
+
+ 
+     useEffect(() => {
+         realm.subscriptions.update((mutableSubs, realm) => {
+        
+          const respostasQuery = realm.objects('Respostas')
+          mutableSubs.add(respostasQuery, {name: 'respostas_atualiza'})
+    
+          const questionarioQuery = realm.objects('Questionario')
+          mutableSubs.add(questionarioQuery, {name: 'questionario_atualiza'})
+         })
+     },[realm])
+    
+    
+     useEffect(() => {
+         const syncSession = realm.syncSession;
+    
+         console.log("Sincronizando")
+    
+         if(!syncSession){
+             return
+         }
+    
+         syncSession.addProgressNotification(
+             Realm.ProgressDirection.Upload,
+             Realm.ProgressMode.ReportIndefinitely,
+             ProgressNotification
+         )
+    
+         return () => syncSession.removeProgressNotification(ProgressNotification)
+    
+     },[])
+    
+
+
+   // useEffect(() => {
+   //     startLocationTask().then(() =>
+   //     console.log("startLocation"))
+   // },[])
 
     return (
+        
         <Container>
-            <Text>Pinóquio</Text>
-            {questionarios.length > 0 && (
-                questionarios.map((quest) =>
-                    <>
-                        <Text key={quest.idPergunta}>{quest.pergunta}</Text>
-                        <FlatList
-                            data={quest.respostas}
-                            keyExtractor={item => item.idResposta}
-                            renderItem={({ item }) => (
-                                <Resposta idResposta={item.idResposta} resposta={item.resposta} onPress={() => handleResposta(quest.idPergunta, quest.pergunta, item.idResposta, item.resposta)} />
-                            )
-                            }
-                            horizontal
-                        />
+            { 
+     percentageToSync!='' && <TopMessage title={percentageToSync} icon={CloudArrowUp} />
+  }
 
-                    </>
-                )
-            )
-            }
-            <Button title="Registrar Resposta" onPress={handleSalvar} isLoading={registrando} />
+            
+      
+             <Mostrar>Pinóquio</Mostrar>
+
+             <Message>Gestão de Pesquisas</Message>
+
+<Rodape>
+            <Button title="Iniciar Nova Pesquisa"  onPress={handlePesquisa}  isLoading={registrando} />
+
+            <Encerrar title=" Encerrar" />
+            
+
+</Rodape>
+            
+
+            
         </Container >
 
     )
 }
+
+
+

@@ -1,27 +1,32 @@
-
 import { useEffect, useState } from "react";
 import { Alert, FlatList } from "react-native";
 import { useUser } from "@realm/react";
 import { LocationAccuracy, useForegroundPermissions, watchPositionAsync, LocationSubscription, requestBackgroundPermissionsAsync } from "expo-location"
+import { CloudArrowUp } from "phosphor-react-native";
 
 
-import { Container, Message, Mostrar, Pergunta, RespostaView, Rodape, Text } from "./styles";
+import { Container, Message, Text } from "./src/screens/Home/styles";
+import { Resposta } from "./src/components/Resposta";
+import { getAddressLocation } from "./src/utils/getAddressLocation";
+import { Button } from "./src/components/Button";
+import { useQuery, useRealm } from "./src/libs/realm";
+import { Respostas } from "./src/libs/realm/schemas/Respostas";
+import { Questionario } from "./src/libs/realm/schemas/Questionario";
+import { saveLastAsyncTimestamp } from "./src/libs/asyncStorage/asyncStorage";
+import { TopMessage } from "./src/components/TopMessage";
+import { startLocationTask } from "./src/tasks/backgroudLocationTask";
 
-import { getAddressLocation } from "../../utils/getAddressLocation";
-import { Button } from "../../components/Button";
-import { useQuery, useRealm } from "../../libs/realm";
-import { Respostas } from "../../libs/realm/schemas/Respostas";
-import { Questionario } from "../../libs/realm/schemas/Questionario";
-import { useNavigation } from "@react-navigation/native";
-import { Encerrar } from "../../components/Encerrar";
-import { Resposta } from "../../components/Resposta";
 
-
-type IQuestionario = {
-    pergunta: string
-    respostas: string[]
+export type IRespostas = {
+    idResposta: string
+    resposta: string
 }
 
+export type IPerguntas = {
+    idPergunta: string
+    pergunta: string
+    respostas: IRespostas[]
+}
 
 type ICoordenadas = {
     altitude: number | null
@@ -29,29 +34,44 @@ type ICoordenadas = {
     longitude: number
 }
 
+export async function Home() {
 
-export function Pesquisa() {
-    
-
+    const [questionarios, setQuestionarios] = useState<IPerguntas[]>([])
     const [coordenada, setCoordenada] = useState<ICoordenadas>({ altitude: 0, longitude: 0, latitude: 0 })
     const [registrando, setRegistrando] = useState(false)
     const [locationForegroundPermission, requestLocationForegroundPermission] = useForegroundPermissions()
     const [perguntas, setPerguntas] = useState('')
     const [respostas, setRespostas] = useState('')
-
-    let questionario = []
+    const [percentageToSync, setPercentageToSync] = useState<string>('')
 
 
     const realm = useRealm()
     const user = useUser()
 
-    const {goBack} = useNavigation()
+    const recebePerguntas = useQuery(Questionario).filtered('ativa="S"')
 
+    const backgroundPermissionas = await requestBackgroundPermissionsAsync()
+
+    setRegistrando(true)
+
+if(!backgroundPermissionas.granted){
+    setRegistrando(false)
+    return Alert.alert("Localização","Não obtive os dados de localização, habilite nas Permissões (Permitir o tempo todo)")
+}
+
+await startLocationTask()
+
+    recebePerguntas.map(item => {
+        console.log(item.pergunta)
+        console.log("   ->"+item.respostas)
+
+    })
+
+    //onsole.log(recebePerguntas)
     
-    const questionarioDB = useQuery(Questionario).filtered('ativa="S"')
 
 
-    function handleResposta( pergunta: string, resposta: string) {
+    function handleResposta(idPergunta: string, pergunta: string, idResposta: string, resposta: string) {
         let separador = ""
         if(perguntas!=""){
           separador = " , " 
@@ -61,15 +81,8 @@ export function Pesquisa() {
         setPerguntas(perguntas+separador+pergunta) 
         setRespostas(respostas+separador+resposta) 
 
-        console.log(setPerguntas)
-        console.log(setRespostas)
      
     }
-
-    function handleCancelar() {
-        goBack()
-    }
-
 
     function handleSalvar() {
 
@@ -105,7 +118,6 @@ export function Pesquisa() {
             setRegistrando(false)
             setPerguntas("")
             setRespostas("")
-            goBack()
 
 
         } catch (error) {
@@ -117,28 +129,21 @@ export function Pesquisa() {
 
     }
 
-    function handleItem(recebe) {
-        const respostasBT = recebe.respostas.replaceAll("{","").replaceAll("}","").replaceAll(' ,',"").replaceAll('"',"").split(",")
-        console.log(respostasBT.length)
-        return(
-            <>
-                <Pergunta>{recebe.pergunta}</Pergunta>
-                <RespostaView>
-                {               
-                    respostasBT.map((item) => 
-                    <Resposta idResposta={recebe.pergunta+item} resposta={item} onpress={handleResposta}/>
-                    )
-                }
 
-                </RespostaView>
-                
-                 
-            </>
-            
-            
-        )
 
+    async function ProgressNotification(transferred: number, transferable: number) {
+        const percProgress = (transferred/transferable)*100
+
+        if(percProgress === 100){
+            await saveLastAsyncTimestamp()
+            setPercentageToSync('')
+
+        }else{
+            setPercentageToSync(`${percProgress.toFixed(0)} % sincronizado.`)
+        }
     }
+
+
     
 
     useEffect(() => {
@@ -168,6 +173,9 @@ export function Pesquisa() {
 
     }, [locationForegroundPermission])
 
+
+
+
     useEffect(() => {
         realm.subscriptions.update((mutableSubs, realm) => {
        
@@ -177,17 +185,35 @@ export function Pesquisa() {
          const questionarioQuery = realm.objects('Questionario')
          mutableSubs.add(questionarioQuery, {name: 'questionario_atualiza'})
         })
-
-        
     },[realm])
 
 
+
     useEffect(() => {
-    
-        requestLocationForegroundPermission()
-        console.log("LOCAL")
+        const syncSession = realm.syncSession;
+
+        if(!syncSession){
+            return
+        }
+
+        syncSession.addProgressNotification(
+            Realm.ProgressDirection.Upload,
+            Realm.ProgressMode.ReportIndefinitely,
+            ProgressNotification
+        )
+
+        return () => syncSession.removeProgressNotification(ProgressNotification)
+
+    },[])
+
+
+
+    useEffect(() => {
+        requestLocationForegroundPermission();
+
         
 
+        
 
 /*
             setQuestionarios(
@@ -248,32 +274,33 @@ if (!locationForegroundPermission?.granted) {
     )
 }
 
+
     return (
         <Container>
-            <Message>Pinóquio - Questionário</Message>
-
-            
-            {
-                questionarioDB.length > 0 &&
-                questionarioDB.map((item) => 
-                     handleItem(item)
-                )
-                
+            { 
+                percentageToSync!='' && <TopMessage title={percentageToSync} icon={CloudArrowUp} />
             }
+            <Text>Pinóquio</Text>
+            {questionarios.length > 0 && (
+                questionarios.map((quest) =>
+                    <>
+                        <Text key={quest.idPergunta}>{quest.pergunta}</Text>
+                        <FlatList
+                            data={quest.respostas}
+                            keyExtractor={item => item.idResposta}
+                            renderItem={({ item }) => (
+                                <Resposta key={quest.idPergunta+"-"+item.idResposta} idResposta={quest.idPergunta+"-"+item.idResposta} resposta={item.resposta} onPress={() => handleResposta(quest.idPergunta, quest.pergunta, item.idResposta, item.resposta)} />
+                            )
+                            }
+                            horizontal
+                        />
 
-
-<Rodape>
-            <Button key="BR" title="Registrar Resposta" onPress={handleSalvar} isLoading={registrando} />
-            <Encerrar key="BC" title="Cancelar" onPress={handleCancelar} isLoading={registrando} />
-
-</Rodape>
-
-
+                    </>
+                )
+            )
+            }
+            <Button title="Registrar Resposta" onPress={handleSalvar} isLoading={registrando} />
         </Container >
-
-
 
     )
 }
-
-

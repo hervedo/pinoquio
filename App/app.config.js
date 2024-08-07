@@ -1,4 +1,9 @@
-{
+import * as dotenv from 'dotenv'
+
+dotenv.config()
+
+
+module.exports = {
   "expo": {
     "name": "App",
     "slug": "App",
@@ -13,7 +18,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.pinoquio.br"
+      "bundleIdentifier": "com.innovapp.pinoquio",
+      "InfoPlist": {
+        "UIBackgroundModes": ["location"]
+      },
     },
     "android": {
       "adaptiveIcon": {
@@ -21,10 +29,11 @@
         "backgroundColor": "#202024"
       },
       "permissions": [
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
       ],
-      "package": "com.pinoquio.br"
+      "package": "com.innovapp.pinoquio"
     },
     "web": {
       "favicon": "./assets/favicon.png"

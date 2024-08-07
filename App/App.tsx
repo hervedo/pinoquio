@@ -1,22 +1,27 @@
 import 'react-native-get-random-values'
 import { ThemeProvider } from "styled-components";
-import { Home } from "./src/screens/Home";
 import theme from "./src/theme";
 import { Roboto_400Regular, Roboto_700Bold, useFonts } from "@expo-google-fonts/roboto";
 import { Loading } from "./src/components/Loading";
 import { StatusBar } from "expo-status-bar";
-import { RealmProvider } from "./src/libs/realm";
-import { AppProvider } from "@realm/react";
-import { REALM_APP_ID } from '@env'
-
+import { RealmProvider, syncConfig } from "./src/libs/realm";
+import { AppProvider, useApp, Realm, UserProvider } from "@realm/react";
+import { REALM_APP_ID, API_KEY} from '@env'
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SignIn } from './src/screens/SignIn';
+import { TopMessage } from './src/components/TopMessage';
+import { WifiSlash } from 'phosphor-react-native';
+import { useNetInfo } from '@react-native-community/netinfo';
+import { Routes } from './src/routes';
 
 
 export default function App() {
 
-
   const [fontsLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold })
 
-  if (!fontsLoaded) {
+  const netInfo = useNetInfo()
+
+    if (!fontsLoaded) {
     return (
       <Loading />
     )
@@ -25,10 +30,22 @@ export default function App() {
   return (
     <AppProvider id={REALM_APP_ID}>
       <ThemeProvider theme={theme}>
+        <SafeAreaProvider style={{flex: 1, backgroundColor: theme.COLORS.GRAY_800}} >
+        {
+         !netInfo.isConnected &&
+          <TopMessage title='Off-line' icon={WifiSlash} />
+        
+        }
+
         <StatusBar style="light" backgroundColor="transparent" translucent />
-        <RealmProvider>
-          <Home />
+
+        <UserProvider fallback={SignIn}> 
+          <RealmProvider sync={syncConfig} fallback={Loading}>          
+             <Routes />          
         </RealmProvider>
+        </UserProvider>
+
+        </SafeAreaProvider>
       </ThemeProvider>
 
     </AppProvider>

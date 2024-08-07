@@ -1,4 +1,4 @@
-package com.pinoquio.br
+package com.innovapp.pinoquio
 
 import android.app.Application
 import android.content.res.Configuration

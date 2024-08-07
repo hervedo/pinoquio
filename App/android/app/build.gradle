@@ -83,9 +83,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.pinoquio.br'
+    namespace 'com.innovapp.pinoquio'
     defaultConfig {
-        applicationId 'com.pinoquio.br'
+        applicationId 'com.innovapp.pinoquio'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
