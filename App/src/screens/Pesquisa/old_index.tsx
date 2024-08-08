@@ -253,11 +253,13 @@ if (!locationForegroundPermission?.granted) {
             <Message>Pinóquio - Questionário</Message>
 
             
-            <FlatList
-                data={questionarioDB}
-                renderItem={({item}) => <Text>{item.pergunta}</Text>}
-                keyExtractor={item => item._id}
-            />         
+            {
+                questionarioDB.length > 0 &&
+                questionarioDB.map((item) => 
+                     handleItem(item)
+                )
+                
+            }
 
 
 <Rodape>
@@ -273,13 +275,5 @@ if (!locationForegroundPermission?.granted) {
 
     )
 }
-
-
-//{
-//    questionarioDB.length > 0 &&
-//    questionarioDB.map((item) => 
-//         handleItem(item)
-//    )
-///}
 
 

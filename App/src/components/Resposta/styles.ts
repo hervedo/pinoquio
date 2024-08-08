@@ -19,7 +19,7 @@ margin-left: 2px;
 border-radius: 6px;
 align-items: center;
 justify-content: center;
-background-color: ${({ theme }) => theme.COLORS.GRAY_300};
+background-color: '#085EAB';
 `
 
 export const Title = styled.Text`

@@ -29,7 +29,6 @@ export const RespostaView = styled.View`
     
 `
 
-
 export const Rodape = styled.View`
     height:25%;
    
@@ -56,7 +55,7 @@ export const Pergunta = styled.Text`
 
 export const Message = styled.Text`
     color: ${({ theme }) => theme.COLORS.GRAY_800};
-    font-size: ${({ theme }) => theme.FONT_SIZE.XXXL}px;
+    font-size: ${({ theme }) => theme.FONT_SIZE.XXL}px;
     font-family: ${({ theme }) => theme.FONT_FAMILY.REGULAR};
     text-align: center;
     margin: 16px;
